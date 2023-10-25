@@ -1,0 +1,84 @@
+import { useState } from "react";
+import {NotificationManager} from 'react-notifications';
+
+const AddProduct = () => {
+
+    const [productDetails, setProductDetails] = useState({
+        productName: '',
+        price: '',
+        photo: ''
+    })
+
+    const handleChange = (e) => {
+        setProductDetails({ ...productDetails, [e.target.name]: e.target.value })
+        // console.log(productDetails)
+    }
+
+    const handlePhoto = (e) => {
+        setProductDetails({ ...productDetails, photo: e.target.files[0] })
+    }
+
+
+    function handleSubmit(e) {
+        e.preventDefault();
+        sendData();
+        console.log("submitted")
+        // console.log(productDetails)
+    }
+
+    const sendData = async()=>{
+        
+        if(productDetails.productName && productDetails.price && productDetails.photo){
+            const formData = new FormData();
+            formData.append('productName',productDetails.productName);
+            formData.append('price',productDetails.price)
+            formData.append('photo',productDetails.photo)
+            let result = await fetch('http://127.0.0.1:2001/addproduct',{
+                method:"POST",
+                headers:{
+                    "Accept":"application/json"
+                    // "Content-Type": "multipart/form-data"
+                },
+                body: formData
+            })
+            result = await result.json();
+            console.log(result)
+            if(!result.message){
+                NotificationManager.success(result.productName+" Add Successfully",)
+               
+            }else{
+                NotificationManager.warning("Something went wrong")
+            }
+
+        }else{
+            NotificationManager.warning("Few input field is still empty.")
+        }
+    }
+
+    return (
+        <>
+            <h1>Add Product</h1>
+            <form onSubmit={handleSubmit} >
+                <div className="table">
+                    <table border="2px solid black">
+                        <tbody>
+                            <tr><th>Product Name</th><td><input type="text" value={productDetails.productName} name="productName" onChange={handleChange} /></td></tr>
+                            <tr><th>Price</th><td><input type="Number" value={productDetails.price} name="price" onChange={handleChange} /></td></tr>
+                            <tr><th>Image</th><td><input type="file" name="photo" accept={".jpg"&&".png"} onChange={handlePhoto} />
+                                <div>
+                                    {
+                                        productDetails.photo ? <img alt="ProdcutImage" style={{ width: "100px", height: "150px" }} src={URL.createObjectURL(productDetails.photo)} /> : <img alt="ProdcutImage"  style={{ width: "100px", height: "150px" }} src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d1/Image_not_available.png/640px-Image_not_available.png" />
+                                    }
+                                </div>
+                            </td>
+                            </tr>
+                            <tr><th colSpan={2}><input type="submit" /></th></tr>
+                        </tbody>
+                    </table>
+
+                </div>
+            </form>
+        </>
+    )
+}
+export default AddProduct;
